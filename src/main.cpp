@@ -138,7 +138,40 @@ int main() {
         //
         // Use SOFT_LIMIT_PERCENT and HARD_LIMIT_PERCENT to parameterize the green and red
         // line positions.
-        camera.setCameraCenter({player.position.x, WINDOW_HEIGHT * 0.5f});
+        
+        //camera.windowToWorld(player.position);
+        //std::cout << camera.worldToWindowPercent(player.position).x << "\n";
+        //std::cout << SOFT_LIMIT_PERCENT << "\n";
+        
+        sf::Vector2f playerPercent = camera.worldToWindowPercent(player.position);
+
+
+        if (playerPercent.x < HARD_LIMIT_PERCENT) {
+            camera.setCameraPercent(player.position,
+                                    {HARD_LIMIT_PERCENT, playerPercent.y});
+        } else if (playerPercent.x > 1 - HARD_LIMIT_PERCENT) {
+            camera.setCameraPercent(
+                player.position, {1 - HARD_LIMIT_PERCENT, playerPercent.y});
+        } else if (playerPercent.x < SOFT_LIMIT_PERCENT) {  // right side
+            std::cout << SOFT_CAMERA_ALPHA * (player.position.x - camera.getCameraCenter().x)
+                      << "\n";
+            camera.setCameraCenter(
+                {camera.getCameraCenter().x +
+                     SOFT_CAMERA_ALPHA * (player.position.x -
+                               camera.windowPercentToWorld({SOFT_LIMIT_PERCENT, 0.0f}).x),
+                 camera.getCameraCenter().y});
+        } else if (camera.worldToWindowPercent(player.position).x >
+                   1 - SOFT_LIMIT_PERCENT) {  // left side
+            camera.setCameraCenter(
+                {camera.getCameraCenter().x +
+                     SOFT_CAMERA_ALPHA *
+                         (player.position.x -
+                          camera.windowPercentToWorld({1 - SOFT_LIMIT_PERCENT, 0.0f}).x),
+                 camera.getCameraCenter().y});
+        }
+
+
+        //camera.setCameraCenter({WINDOW_WIDTH * 0.5f, WINDOW_HEIGHT * 0.5f});
 
         worldView.setCenter(camera.getCameraCenter());
         window.clear(sf::Color::Black);
